@@ -1,7 +1,8 @@
 'use client';
 
-import { Search, HelpCircle, Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { Search, HelpCircle, Plus, X, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import api from '@/lib/axios';
 
 interface SidebarProps {
   onNewChat: () => void;
@@ -9,6 +10,7 @@ interface SidebarProps {
   onSelectFAQ?: (question: string) => void;
   onClose?: () => void;
   isOpen?: boolean;
+  isTyping?: boolean;
 }
 
 export default function Sidebar({ 
@@ -16,22 +18,35 @@ export default function Sidebar({
   onSelectTab,
   onSelectFAQ,
   onClose,
-  isOpen = true
+  isOpen = true,
+  isTyping = false
 }: SidebarProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [faqList, setFaqList] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const faqList = [
-    "What is Sangkay Chatbot?",
-    "How do I contact support?",
-    "What are the library hours?",
-    "How to apply for graduation?",
-    "Campus emergency numbers",
-    "How to request a transcript?",
-    "Where is the health clinic?",
-    "WIFI access on campus",
-    "Student organization registration",
-    "Lost and found location"
-  ];
+  useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        setIsLoading(true);
+        // Using 'faqs' (no leading slash) to append to the baseURL properly
+        const response = await api.get('faqs');
+        const data = response.data?.data || response.data;
+        
+        if (Array.isArray(data)) {
+          const questions = data.map((item: any) => item.suggested_q).filter(Boolean);
+          setFaqList(questions);
+        }
+      } catch (error) {
+        console.error('Failed to fetch FAQs:', error);
+        setFaqList([]); // Fallback to empty list
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFAQs();
+  }, []);
 
   const filteredFAQs = faqList.filter(faq => 
     faq.toLowerCase().includes(searchTerm.toLowerCase())
@@ -81,7 +96,8 @@ export default function Sidebar({
               placeholder="Search FAQs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+              disabled={isTyping}
+              className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
         </div>
@@ -90,10 +106,12 @@ export default function Sidebar({
         <div className="px-4 pt-4">
           <button
             onClick={() => {
+              if (isTyping) return;
               onNewChat();
               onClose?.();
             }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl text-left transition-all mb-4 bg-orange-50 hover:bg-orange-100 text-[var(--orange)] font-medium border border-orange-200 shadow-sm"
+            disabled={isTyping}
+            className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl text-left transition-all mb-4 bg-orange-50 hover:bg-orange-100 text-[var(--orange)] font-medium border border-orange-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:border-gray-100"
           >
             <Plus className="w-5 h-5" />
             <span>New Chat</span>
@@ -106,15 +124,21 @@ export default function Sidebar({
               Frequently Asked
             </p>
             <div className="flex flex-col gap-1">
-              {filteredFAQs.length > 0 ? (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+                </div>
+              ) : filteredFAQs.length > 0 ? (
                 filteredFAQs.map((faq, index) => (
                   <button
                     key={index}
                     onClick={() => {
+                      if (isTyping) return;
                       onSelectFAQ?.(faq);
                       onClose?.();
                     }}
-                    className="w-full text-left px-4 py-3 rounded-xl text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition-all border border-transparent hover:border-orange-100"
+                    disabled={isTyping}
+                    className="w-full text-left px-4 py-3 rounded-xl text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition-all border border-transparent hover:border-orange-100 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {faq}
                   </button>

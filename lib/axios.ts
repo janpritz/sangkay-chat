@@ -1,9 +1,13 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+    let url = process.env.NEXT_PUBLIC_BACKEND_URL;
+    return url;
+};
+
 const api = axios.create({
-    baseURL: 'http://localhost:8000/api', // Adjust this to match your Laravel API URL
-    //baseURL: 'https://api.accsangkaychatbot.com/api/v2',
-    withCredentials: true, // MANDATORY for cookies
+    baseURL: getBaseURL(), 
+    withCredentials: true, 
     withXSRFToken: true,
     headers: {
         'X-Requested-With': 'XMLHttpRequest',
