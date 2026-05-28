@@ -19,6 +19,16 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Inter', system-ui, sans-serif;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* Chat Scrollbar */

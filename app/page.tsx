@@ -9,13 +9,28 @@ import { Menu } from 'lucide-react';
 import api from '@/lib/axios';
 
 export default function Home() {
+  const greetings = [
+    "How can I help you today?",
+    "What's on your mind?",
+    "How can I assist you right now?",
+    "Need help with something?",
+    "I'm here to help. What do you need?",
+    "What can I do for you today?"
+  ];
+
   const [messages, setMessages] = useState<any[]>([]);
   const [isEmpty, setIsEmpty] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [greeting, setGreeting] = useState('How can I help you today?');
+  const [greeting, setGreeting] = useState('');
   const [recentQuestions, setRecentQuestions] = useState<string[]>([]);
   const [predefinedAnswers, setPredefinedAnswers] = useState<Record<string, string>>({});
+
+  // Initialize greeting on mount
+  useEffect(() => {
+    const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+    setGreeting(randomGreeting);
+  }, []);
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -48,23 +63,9 @@ export default function Home() {
     fetchHomeData();
   }, []);
 
-  const greetings = [
-    "How can I help you today?",
-    "What's on your mind?",
-    "How can I assist you right now?",
-    "Need help with something?",
-    "I'm here to help. What do you need?",
-    "What can I do for you today?"
-  ];
-
-  // Update empty state and randomize greeting
+  // Update empty state
   useEffect(() => {
-    const empty = messages.length === 0;
-    setIsEmpty(empty);
-    if (empty) {
-      const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-      setGreeting(randomGreeting);
-    }
+    setIsEmpty(messages.length === 0);
   }, [messages]);
 
   const handleSend = (message: string) => {
@@ -104,6 +105,8 @@ export default function Home() {
 
   const handleNewChat = () => {
     setMessages([]);
+    const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+    setGreeting(randomGreeting);
     const baseUrl = process.env.NEXT_PUBLIC_RASA_SERVER_URL || 'http://localhost:5005';
     const senderId = typeof window !== 'undefined'
       ? localStorage.getItem('sangkay_sender_id') || `user_${Date.now()}`
@@ -120,7 +123,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-white text-gray-900 overflow-hidden relative">
+    <div className="flex h-dvh bg-white text-gray-900 overflow-hidden relative">
       <Sidebar 
         onNewChat={handleNewChat}
         onSelectTab={(tab) => console.log('Tab selected:', tab)}
@@ -162,7 +165,7 @@ export default function Home() {
                 exit={{ opacity: 0, transition: { duration: 0.8, delay: 0.2 } }}
                 className="absolute inset-0 flex items-center justify-center px-4 sm:px-6 transition-all duration-700 z-20 bg-white/80 backdrop-blur-sm"
               >
-                <div className="w-full max-w-2xl animate-fade-in flex flex-col items-center">
+                <div className="w-full max-w-2xl animate-fade-in flex flex-col items-center py-8 overflow-y-auto no-scrollbar max-h-full">
                   <div className="text-center mb-8 sm:mb-10">
                     <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-orange-100 rounded-full mb-4 sm:mb-6">
                       <span className="text-4xl sm:text-5xl">👋</span>
@@ -205,21 +208,9 @@ export default function Home() {
           </AnimatePresence>
         </div>
 
-        {/* Bottom Input + Recent Questions (Active Chat) */}
+        {/* Bottom Input (Active Chat) */}
         {!isEmpty && (
           <div className="flex flex-col bg-white border-t border-gray-100">
-            <div className="px-4 sm:px-6 py-2 sm:py-3 overflow-x-auto flex gap-2 sm:gap-3 no-scrollbar scroll-smooth">
-              {recentQuestions.map((q, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSend(q)}
-                  disabled={isTyping}
-                  className="flex-none bg-gray-50 border border-gray-200 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-xs text-gray-600 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-600 transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50 disabled:hover:border-gray-200 disabled:hover:text-gray-600"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
             <ChatInput onSend={handleSend} isCentered={false} isDisabled={isTyping} />
           </div>
         )}
