@@ -139,9 +139,9 @@ export default function Home() {
           >
             <Menu className="w-6 h-6" />
           </button>
-          <div className="flex-1 flex justify-center mr-10">
+          {/* <div className="flex-1 flex justify-center mr-10">
             <img src="/logo.png" alt="Sangkay" className="w-7 h-7 object-contain" />
-          </div>
+          </div> */}
           <p className="text-gray-500">Chat with Sangkay</p>
         </div>
 
